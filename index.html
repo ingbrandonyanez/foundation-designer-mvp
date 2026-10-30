@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FoundationPro NSR-10</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-left">
+    <div class="logo">FP</div>
+    <div>
+      <h1>FoundationPro <span class="highlight">NSR-10</span></h1>
+      <p class="subtitle">Diseño de zapatas aisladas · ACI 318 · NSR-10</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button id="btn-calc" class="btn btn-primary">⚡ Calcular</button>
+    <button id="btn-optimize" class="btn btn-success">🎯 Optimizar</button>
+    <button id="btn-plans" class="btn btn-secondary">📐 Planos</button>
+    <button id="btn-pdf" class="btn btn-secondary"> PDF</button>
+    <button id="btn-dxf" class="btn btn-secondary"> DXF</button>
+    <button id="btn-save" class="btn btn-secondary">💾 Guardar</button>
+    <button id="btn-load" class="btn btn-secondary">📂 Cargar</button>
+    <input type="file" id="file-load" accept=".json,application/json" style="display:none">
+  </div>
+</header>
+
+<main class="app-main">
+  <aside class="panel-left">
+    <div class="panel-content">
+
+      <section class="card">
+        <h3 class="card-title"> Geometría</h3>
+        <div class="grid-2">
+          <div class="input-group"><label>B (m)</label><input type="number" id="in-B" value="1.80" step="0.05"></div>
+          <div class="input-group"><label>L (m)</label><input type="number" id="in-L" value="1.80" step="0.05"></div>
+          <div class="input-group"><label>h (m)</label><input type="number" id="in-h" value="0.45" step="0.05"></div>
+          <div class="input-group"><label>rec (cm)</label><input type="number" id="in-rec" value="7.5" step="0.5"></div>
+          <div class="input-group"><label>Columna a (cm)</label><input type="number" id="in-col-a" value="30" step="1"></div>
+          <div class="input-group"><label>Columna b (cm)</label><input type="number" id="in-col-b" value="30" step="1"></div>
+          <!-- NUEVOS INPUTS PARA PEDESTAL -->
+          <div class="input-group"><label>Pedestal A (cm)</label><input type="number" id="in-pedA" value="40" step="1"></div>
+          <div class="input-group"><label>Pedestal B (cm)</label><input type="number" id="in-pedB" value="40" step="1"></div>
+          <div class="input-group"><label>pedH (cm)</label><input type="number" id="in-ped-h" value="60" step="1"></div>
+          <div class="input-group"><label>solado (cm)</label><input type="number" id="in-sol" value="5" step="1"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 class="card-title">📄 Datos del Reporte</h3>
+        <div class="grid-2">
+          <div class="input-group span-2"><label>Proyecto</label><input type="text" id="in-proj" value="Proyecto Estructural"></div>
+          <div class="input-group"><label>ID Zapata</label><input type="text" id="in-zid" value="Z1"></div>
+          <div class="input-group"><label>Fecha</label><input type="date" id="in-date"></div>
+          <div class="input-group"><label>Elaboró</label><input type="text" id="in-elab" value="Ing. Calculista"></div>
+          <div class="input-group"><label>Revisó</label><input type="text" id="in-rev" value="Ing. Revisor"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 class="card-title">🧱 Materiales</h3>
+        <div class="grid-2">
+          <div class="input-group"><label>f'c (kg/cm²)</label><input type="number" id="in-fc" value="210" step="10"></div>
+          <div class="input-group"><label>fy (kg/cm²)</label><input type="number" id="in-fy" value="4200" step="100"></div>
+          <div class="input-group"><label>γc (kg/m³)</label><input type="number" id="in-gc" value="2400" step="50"></div>
+          <div class="input-group"><label>β1</label><input type="number" id="in-beta1" value="0.85" readonly class="readonly"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 class="card-title">🌍 Geotecnia</h3>
+        <div class="grid-2">
+          <div class="input-group"><label>qa (kg/cm²)</label><input type="number" id="in-qa" value="1.5" step="0.1"></div>
+          <div class="input-group"><label>γ suelo (kg/m³)</label><input type="number" id="in-gs" value="1800" step="50"></div>
+          <div class="input-group"><label>NF (m)</label><input type="number" id="in-nf" value="5.0" step="0.5"></div>
+          <div class="input-group"><label>k (kg/cm³)</label><input type="number" id="in-k" value="2.0" step="0.1"></div>
+          <div class="input-group span-2"><label>δ perm (cm)</label><input type="number" id="in-delta" value="2.5" step="0.1"></div>
+          <div class="input-group"><label>Df (m)</label><input type="number" id="in-df" value="1.50" step="0.1"></div>
+          <div class="input-group"><label>c' (kg/cm²)</label><input type="number" id="in-cp" value="0.1" step="0.05"></div>
+          <div class="input-group span-2"><label>φ' (°)</label><input type="number" id="in-phi" value="28" step="1"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 class="card-title">⚖️ Cargas de Servicio</h3>
+        <div class="grid-2">
+          <div class="input-group"><label>P (Ton)</label><input type="number" id="in-P" value="40" step="1"></div>
+          <div class="input-group"><label>Mx (Ton·m)</label><input type="number" id="in-Mx" value="3.0" step="0.1"></div>
+          <div class="input-group"><label>My (Ton·m)</label><input type="number" id="in-My" value="2.0" step="0.1"></div>
+          <div class="input-group"><label>Hx (Ton)</label><input type="number" id="in-Hx" value="1.0" step="0.1"></div>
+          <div class="input-group"><label>Hy (Ton)</label><input type="number" id="in-Hy" value="0.5" step="0.1"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 class="card-title">🔥 Cargas Factorizadas</h3>
+        <div class="grid-2">
+          <div class="input-group"><label>Pu (Ton)</label><input type="number" id="in-Pu" value="58" step="1"></div>
+          <div class="input-group"><label>Mux (Ton·m)</label><input type="number" id="in-Mux" value="4.5" step="0.1"></div>
+          <div class="input-group"><label>Muy (Ton·m)</label><input type="number" id="in-Muy" value="3.0" step="0.1"></div>
+          <div class="input-group"><label>Qux (Ton)</label><input type="number" id="in-Hux" value="1.5" step="0.1"></div>
+          <div class="input-group"><label>Quy (Ton)</label><input type="number" id="in-Huy" value="0.8" step="0.1"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 class="card-title"> Refuerzo</h3>
+        <!-- Inferior X -->
+        <div style="margin-bottom:12px;padding:8px;background:rgba(37,99,235,0.1);border-radius:4px;">
+          <label style="font-size:11px;font-weight:bold;color:#60a5fa;display:block;margin-bottom:6px;"> Refuerzo Inferior - Dir. X</label>
+          <div class="grid-2">
+            <div class="input-group">
+              <label>Ø barras</label>
+              <select id="in-db-x"><option value="1.27" selected>#4 (1/2")</option><option value="1.59">#5</option><option value="1.91">#6</option><option value="2.22">#7</option><option value="2.54">#8</option></select>
+            </div>
+            <div class="input-group">
+              <label>Separación (cm)</label>
+              <input type="number" id="in-s-x" value="20" step="1">
+            </div>
+          </div>
+          <div style="margin-top:6px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="chk-hook-x" style="width:14px;"><span style="font-size:10px;color:#94a3b8;">Ganchos Estándar</span></label>
+            <div id="hook-x-options" style="display:none;margin-top:4px;"><select id="in-hook-x" style="width:100%;background:#020617;border:1px solid #334155;color:#e2e8f0;padding:4px;border-radius:4px;font-size:11px;"><option value="90">90°</option><option value="180">180°</option></select></div>
+          </div>
+        </div>
+
+        <!-- Inferior Y -->
+        <div style="margin-bottom:12px;padding:8px;background:rgba(22,163,74,0.1);border-radius:4px;">
+          <label style="font-size:11px;font-weight:bold;color:#22c55e;display:block;margin-bottom:6px;"> Refuerzo Inferior - Dir. Y</label>
+          <div class="grid-2">
+            <div class="input-group">
+              <label>Ø barras</label>
+              <select id="in-db-y"><option value="1.27" selected>#4 (1/2")</option><option value="1.59">#5</option><option value="1.91">#6</option><option value="2.22">#7</option><option value="2.54">#8</option></select>
+            </div>
+            <div class="input-group">
+              <label>Separación (cm)</label>
+              <input type="number" id="in-s-y" value="20" step="1">
+            </div>
+          </div>
+          <div style="margin-top:6px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="chk-hook-y" style="width:14px;"><span style="font-size:10px;color:#94a3b8;">Ganchos Estándar</span></label>
+            <div id="hook-y-options" style="display:none;margin-top:4px;"><select id="in-hook-y" style="width:100%;background:#020617;border:1px solid #334155;color:#e2e8f0;padding:4px;border-radius:4px;font-size:11px;"><option value="90">90°</option><option value="180">180°</option></select></div>
+          </div>
+        </div>
+
+        <!-- Superior -->
+        <div style="margin-bottom:12px;padding:8px;background:rgba(245,158,11,0.1);border-radius:4px;">
+          <label style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer;"><input type="checkbox" id="chk-top-rebar" style="width:16px;"><span style="font-size:11px;font-weight:bold;color:#f59e0b;">🔝 Parrilla Superior</span></label>
+          <div id="top-rebar-section" style="display:none;">
+            <div style="padding:6px;background:rgba(37,99,235,0.05);border-radius:3px;margin-bottom:8px;">
+              <label style="font-size:10px;font-weight:bold;color:#60a5fa;">Dir. X Superior</label>
+              <div class="grid-2">
+                <div class="input-group"><label>Ø</label><select id="in-db-top-x"><option value="1.27" selected>#4</option><option value="1.59">#5</option><option value="1.91">#6</option></select></div>
+                <div class="input-group"><label>Sep (cm)</label><input type="number" id="in-s-top-x" value="25" step="1"></div>
+              </div>
+              <div style="margin-top:4px;"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="chk-hook-top-x" style="width:12px;"><span style="font-size:9px;color:#94a3b8;">Ganchos</span></label><div id="hook-top-x-options" style="display:none;margin-top:2px;"><select id="in-hook-top-x" style="width:100%;background:#020617;border:1px solid #334155;color:#e2e8f0;padding:3px;border-radius:3px;font-size:10px;"><option value="90">90°</option><option value="180">180°</option></select></div></div>
+            </div>
+            <div style="padding:6px;background:rgba(22,163,74,0.05);border-radius:3px;">
+              <label style="font-size:10px;font-weight:bold;color:#22c55e;">Dir. Y Superior</label>
+              <div class="grid-2">
+                <div class="input-group"><label>Ø</label><select id="in-db-top-y"><option value="1.27" selected>#4</option><option value="1.59">#5</option><option value="1.91">#6</option></select></div>
+                <div class="input-group"><label>Sep (cm)</label><input type="number" id="in-s-top-y" value="25" step="1"></div>
+              </div>
+              <div style="margin-top:4px;"><label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="chk-hook-top-y" style="width:12px;"><span style="font-size:9px;color:#94a3b8;">Ganchos</span></label><div id="hook-top-y-options" style="display:none;margin-top:2px;"><select id="in-hook-top-y" style="width:100%;background:#020617;border:1px solid #334155;color:#e2e8f0;padding:3px;border-radius:3px;font-size:10px;"><option value="90">90°</option><option value="180">180°</option></select></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna -->
+        <div style="padding:8px;background:rgba(220,38,38,0.1);border-radius:4px;">
+          <label style="font-size:11px;font-weight:bold;color:#ef4444;display:block;margin-bottom:6px;">🏛️ Refuerzo Columna (para ld)</label>
+          <div class="grid-2">
+            <div class="input-group"><label>Ø col.</label><select id="in-db-col"><option value="1.59">#5</option><option value="1.91" selected>#6</option><option value="2.22">#7</option><option value="2.54">#8</option></select></div>
+            <div class="input-group"><label>N° barras</label><input type="number" id="in-n-col" value="8"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <section class="panel-center">
+    <div class="toolbar">
+      <span class="toolbar-label">Vista:</span>
+      <button data-view="iso" class="view-btn active">Isométrica</button>
+      <button data-view="top" class="view-btn">Planta</button>
+      <button data-view="front" class="view-btn">Frontal</button>
+      <button data-view="side" class="view-btn">Lateral</button>
+      <div class="spacer"></div>
+      <button id="btn-redraw" class="btn btn-secondary" style="padding:3px 10px;font-size:11px;">🔄 Redibujar</button>
+      <label class="toggle">Textos 3D <input type="range" id="rng-labels" min="0.15" max="0.9" step="0.05" value="0.42" style="width:80px;"></label>
+      <label class="toggle"><input type="checkbox" id="chk-press" checked> Presiones</label>
+      <label class="toggle"><input type="checkbox" id="chk-rebar" checked> Acero</label>
+      <label class="toggle"><input type="checkbox" id="chk-grid" checked> Grilla</label>
+      <label class="toggle"><input type="checkbox" id="chk-loads" checked> Cargas</label>
+    </div>
+    <div class="tabs">
+      <button data-tab="3d" class="tab-btn active">🧊 Modelo 3D</button>
+      <button data-tab="plan" class="tab-btn">📋 Planta</button>
+      <button data-tab="section" class="tab-btn"> Cortes</button>
+      <button data-tab="press" class="tab-btn"> Presiones</button>
+    </div>
+    <div class="view-container">
+      <div id="view-3d" class="view-panel active"><div id="three-container"></div><div class="overlay-info"><div>🖱️ Rotar/Zoom</div><div id="info-3d" class="highlight-text">—</div></div></div>
+      <div id="view-plan" class="view-panel"><canvas id="canvas-plan"></canvas></div>
+      <div id="view-section" class="view-panel"><canvas id="canvas-section"></canvas></div>
+      <div id="view-press" class="view-panel"><div id="plot-press"></div></div>
+    </div>
+  </section>
+
+  <aside class="panel-right">
+    <div class="panel-content">
+      <section class="card"><h3 class="card-title"> Estado</h3><div id="global-status" class="status-box pending">Pendiente...</div></section>
+      <section class="card"><h3 class="card-title">🌍 Geotecnia</h3><div id="geo-results" class="results-list"></div></section>
+      <section class="card"><h3 class="card-title"> Punzonamiento</h3><div id="punch-results" class="results-list"></div></section>
+      <section class="card"><h3 class="card-title">✂️ Cortante</h3><div id="shear-results" class="results-list"></div></section>
+      <section class="card"><h3 class="card-title"> Flexión</h3><div id="flex-results" class="results-list"></div></section>
+      <section class="card"><h3 class="card-title">🔩 Acero</h3><div id="rebar-results" class="results-list"></div></section>
+      <section class="card"><h3 class="card-title">️ Desarrollo</h3><div id="dev-results" class="results-list"></div></section>
+      <section class="card"><h3 class="card-title">📋 Tabla</h3><div id="steel-table"></div></section>
+      <section class="card"><h3 class="card-title">⚠️ Alertas</h3><div id="alerts"></div></section>
+    </div>
+  </aside>
+</main>
+
+<script src="geometry.js"></script>
+<script src="geotechnical.js"></script>
+<script src="design.js"></script>
+<script src="reinforcement.js"></script>
+<script src="foundation.js"></script>
+<script src="report.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
